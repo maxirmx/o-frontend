@@ -47,7 +47,6 @@ library.add(faEye, faEyeSlash, faHand, faPen, faPlay, faPlus, faTrashCan, faUser
 
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
-import { VDataTable } from 'vuetify/lib/labs/components.mjs'
 import VuetifyUseDialog from 'vuetify-use-dialog'
 //import { aliases, fa } from 'vuetify/iconsets/fa'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
@@ -75,7 +74,7 @@ const app = createApp(App)
   .component('font-awesome-icon', FontAwesomeIcon)
   .use(createPinia())
   .use(router)
-  .use(vuetify, { components: { VDataTable } })
+  .use(vuetify)
   .use(VuetifyUseDialog)
 
 const queryString = window.location.search

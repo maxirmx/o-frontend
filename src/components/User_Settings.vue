@@ -31,6 +31,7 @@ import { storeToRefs } from 'pinia'
 import { Form, Field } from 'vee-validate'
 import * as Yup from 'yup'
 import { useUsersStore } from '@/stores/users.store.js'
+import { useProfilesStore } from '@/stores/profiles.store.js'
 import { useAuthStore } from '@/stores/auth.store.js'
 import { useAlertStore } from '@/stores/alert.store.js'
 
@@ -51,6 +52,7 @@ const authStore = useAuthStore()
 const pwdErr =
   'Пароль должен быть не короче 8 символов и содержать хотя бы одну цифру и один специальный символ (!@#$%^&*()\\-_=+{};:,<.>)'
 const pwdReg = /^.*(?=.{8,})((?=.*[!@#$%^&*()\-_=+{};:,<.>]){1})((?=.*\d){1}).*$/
+const profileErr = 'Необходимо указать организацию'
 
 const schema = Yup.object().shape({
   firstName: Yup.string().required('Необходимо указать имя'),
@@ -58,8 +60,9 @@ const schema = Yup.object().shape({
   email: Yup.string()
     .required('Необходимо указать электронную почту')
     .email('Неверный формат электронной почты'),
-  apiKey: Yup.string(),
-  apiSecret: Yup.string(),
+  profileId: Yup.number().concat(
+    asAdmin() ? Yup.number().typeError(profileErr).required(profileErr).min(0, profileErr) : null
+  ),
   password: Yup.string().concat(
     isRegister() ? Yup.string().required('Необходимо указать пароль').matches(pwdReg, pwdErr) : null
   ),
@@ -71,12 +74,23 @@ const schema = Yup.object().shape({
     .oneOf([Yup.ref('password')], 'Пароли должны совпадать')
 })
 
+const profilesStore = useProfilesStore()
+const profiles = storeToRefs(profilesStore).profiles
+const profile = storeToRefs(profilesStore).profile
+
+if (asAdmin()) {
+  profilesStore.getAll()
+} else {
+  if (authStore.user) {
+    profilesStore.getById(authStore.user.profileId)
+  }
+}
+
 const showPassword = ref(false)
 const showPassword2 = ref(false)
-const showSecret = ref(false)
 
 let user = ref({
-  isEnabled: 'ENABLED'
+  profileId: 1
 })
 
 if (!isRegister()) {
@@ -111,26 +125,24 @@ function showAndEditCredentials() {
 function getCredentials() {
   let crd = null
   if (user.value) {
-    crd = 'Пользователь'
+    crd = ''
     if (user.value.isAdmin === 'ADMIN') {
-      crd += '; aдминистратор'
+      crd = 'Aдминистратор'
     }
   }
   return crd
 }
 
 function onSubmit(values, { setErrors }) {
-  if (values.apiKey == null) values.apiKey = ''
-  if (values.apiSecret == null) values.apiSecret = ''
-
   if (isRegister()) {
     if (asAdmin()) {
       return usersStore
         .add(values, true)
-        .then(() => router.go(-1))
+        .then(() =>
+          router.push(authStore.user.isAdmin ? '/users' : '/user/edit/' + authStore.user.id)
+        )
         .catch((error) => setErrors({ apiError: error }))
     } else {
-      values.isEnabled = true
       values.isAdmin = false
       values.host = window.location.href
       values.host = values.host.substring(0, values.host.lastIndexOf('/'))
@@ -153,13 +165,9 @@ function onSubmit(values, { setErrors }) {
   } else {
     return usersStore
       .update(props.id, values, true)
-      .then(() => {
-        if (window.history.length > 0) {
-          router.go(-1)
-        } else {
-          router.push('/btasks')
-        }
-      })
+      .then(() =>
+        router.push(authStore.user.isAdmin ? '/users' : '/user/edit/' + authStore.user.id)
+      )
       .catch((error) => {
         console.log(error)
         setErrors({ apiError: error })
@@ -222,53 +230,6 @@ function onSubmit(values, { setErrors }) {
           :class="{ 'is-invalid': errors.email }"
           placeholder="Адрес электронной почты"
         />
-      </div>
-      <div class="form-group">
-        <label for="apiKey" class="label">API Key:</label>
-        <Field
-          name="apiKey"
-          id="apiKey"
-          autocomplete="off"
-          type="text"
-          class="form-control input"
-          :class="{ 'is-invalid': errors.apiKey }"
-          placeholder="API Key"
-        />
-      </div>
-      <div class="form-group">
-        <label for="apiSecret" class="label">API Secret:</label>
-        <Field
-          name="apiSecret"
-          id="apiSecret"
-          autocomplete="off"
-          :type="showSecret ? 'text' : 'password'"
-          class="form-control input password"
-          :class="{ 'is-invalid': errors.apiSecret }"
-          placeholder="API Secret"
-        />
-        <button
-          type="button"
-          @click="
-            (event) => {
-              event.preventDefault()
-              showSecret = !showSecret
-            }
-          "
-          class="button-o"
-        >
-          <font-awesome-icon
-            size="1x"
-            v-if="!showSecret"
-            icon="fa-solid fa-eye"
-            class="button-o-c"
-          />
-          <font-awesome-icon
-            size="1x"
-            v-if="showSecret"
-            icon="fa-solid fa-eye-slash"
-            class="button-o-c"
-          />
-        </button>
       </div>
       <div class="form-group">
         <label for="password" class="label">Пароль:</label>
@@ -341,6 +302,26 @@ function onSubmit(values, { setErrors }) {
         </button>
       </div>
       <div v-if="showCredentials()" class="form-group">
+        <label for="profileId" class="label">Профиль:</label>
+        <span id="profileId"
+          ><em>{{ profile?.name }}</em></span
+        >
+      </div>
+      <div v-if="showAndEditCredentials()" class="form-group">
+        <label for="profileId" class="label">Профиль:</label>
+        <Field
+          name="profileId"
+          as="select"
+          class="form-control input select"
+          :class="{ 'is-invalid': errors.profileId }"
+        >
+          <option value="">Выберите профиль:</option>
+          <option v-for="profile in profiles" :key="profile" :value="profile.id">
+            {{ profile.name }}
+          </option>
+        </Field>
+      </div>
+      <div v-if="showCredentials()" class="form-group">
         <label for="crd" class="label">Права:</label>
         <span id="crd"
           ><em>{{ getCredentials() }}</em></span
@@ -348,15 +329,7 @@ function onSubmit(values, { setErrors }) {
       </div>
 
       <div v-if="showAndEditCredentials()" class="form-group">
-        <label for="isEnabled" class="label">Права</label>
-        <Field
-          id="isEnabled"
-          name="isEnabled"
-          type="checkbox"
-          class="checkbox checkbox-styled"
-          value="ENABLED"
-        />
-        <label for="isEnabled">Пользователь</label>
+        <label for="isAdmin" class="label">Права:</label>
         <Field
           id="isAdmin"
           type="checkbox"
@@ -373,10 +346,12 @@ function onSubmit(values, { setErrors }) {
           {{ getButton() }}
         </button>
         <button
-          v-if="!isRegister() || asAdmin()"
+          v-if="asAdmin()"
           class="button"
           type="button"
-          @click="$router.go(-1)"
+          @click="
+            $router.push(authStore.user.isAdmin ? '/users' : '/user/edit/' + authStore.user.id)
+          "
         >
           <span v-show="isSubmitting" class="spinner-border spinner-border-sm mr-1"></span>
           Отменить
@@ -390,8 +365,7 @@ function onSubmit(values, { setErrors }) {
       <div v-if="errors.email" class="alert alert-danger mt-3 mb-0">{{ errors.email }}</div>
       <div v-if="errors.password" class="alert alert-danger mt-3 mb-0">{{ errors.password }}</div>
       <div v-if="errors.password2" class="alert alert-danger mt-3 mb-0">{{ errors.password2 }}</div>
-      <div v-if="errors.apiKey" class="alert alert-danger mt-3 mb-0">{{ errors.apiKey }}</div>
-      <div v-if="errors.apiSecret" class="alert alert-danger mt-3 mb-0">{{ errors.apiSecret }}</div>
+      <div v-if="errors.profileId" class="alert alert-danger mt-3 mb-0">{{ errors.profileId }}</div>
       <div v-if="errors.apiError" class="alert alert-danger mt-3 mb-0">{{ errors.apiError }}</div>
     </Form>
   </div>

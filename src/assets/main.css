@@ -28,7 +28,7 @@
   margin: 0 auto;
 }
 
-/* Forms: user settings/register, btask new/edit */
+/* Forms: user settings/register */
 .form-2,
 .table-1,
 .list-1 {
@@ -37,7 +37,7 @@
   margin: 0 auto;
 }
 
-/* Tables: users, btasks */
+/* Tables: users */
 .table-2 {
   width: 100%;
   max-width: 1200px;
@@ -52,7 +52,7 @@
   padding: 0;
 }
 
-/* The link to create new entity (btask, user, org, status */
+/* The link to create new entity (user) */
 .link-crt {
   margin-bottom: 1rem;
 }

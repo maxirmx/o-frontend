@@ -67,19 +67,16 @@ function getUserName() {
       <template v-slot:prepend>
         <v-app-bar-nav-icon @click.stop="toggleDrawer()" color="blue-darken-2"></v-app-bar-nav-icon>
       </template>
-      <v-app-bar-title class="orange">Trade and Smile {{ getUserName() }} </v-app-bar-title>
+      <v-app-bar-title class="orange">O!Service {{ getUserName() }} </v-app-bar-title>
       <v-spacer />
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" elevation="4">
       <template v-slot:prepend>
         <div class="pa-2" v-if="height > 480">
-          <img alt="Сargo Management" class="logo" src="@/assets/logo.png" />
+          <img alt="O!Service" class="logo" src="@/assets/logo.png" />
         </div>
       </template>
       <v-list v-if="authStore.user">
-        <v-list-item>
-          <RouterLink to="/btasks" class="link">Роботы</RouterLink>
-        </v-list-item>
         <v-list-item v-if="!authStore.user.isAdmin">
           <RouterLink :to="'/user/edit/' + authStore.user.id" class="link">Настройки</RouterLink>
         </v-list-item>

@@ -31,7 +31,6 @@ import { apiUrl } from '@/helpers/config.js'
 const baseUrl = `${apiUrl}/users`
 
 function translate(param) {
-  param.isEnabled = param.isEnabled === 'ENABLED'
   param.isAdmin = param.isAdmin === 'ADMIN'
   return param
 }
@@ -67,7 +66,6 @@ export const useUsersStore = defineStore({
       try {
         this.user = await fetchWrapper.get(`${baseUrl}/${id}`)
         if (trnslt) {
-          this.user.isEnabled = this.user.isEnabled ? 'ENABLED' : 'JERK'
           this.user.isAdmin = this.user.isAdmin ? 'ADMIN' : 'JERK'
         }
       } catch (error) {

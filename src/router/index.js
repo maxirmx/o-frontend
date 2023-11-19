@@ -71,22 +71,6 @@ const router = createRouter({
       name: 'Настройки',
       component: () => import('@/views/User_EditView.vue'),
       props: true
-    },
-    {
-      path: '/btasks',
-      name: 'Роботы',
-      component: () => import('@/views/BTasks_View.vue')
-    },
-    {
-      path: '/btask/edit/:btaskId',
-      name: 'Настройка робота',
-      component: () => import('@/views/BTask_EditView.vue'),
-      props: true
-    },
-    {
-      path: '/btask/add',
-      name: 'Добавить робота',
-      component: () => import('@/views/BTask_AddView.vue')
     }
   ]
 })
@@ -133,8 +117,8 @@ router.beforeEach(async (to) => {
     if (!auth.user) {
       return true
     }
-    // (3.1) No need to login, fall thtrough to btasks
-    return '/btasks'
+    // (3.1) No need to login, fall through somewhere ...
+    return auth.user.isAdmin ? '/users' : '/user/edit/' + auth.user.id
   }
 
   // (3.1) Do as requested

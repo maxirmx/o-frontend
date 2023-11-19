@@ -24,7 +24,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-import { VDataTable } from 'vuetify/lib/labs/components.mjs'
+import { computed } from 'vue'
 import router from '@/router'
 
 import { storeToRefs } from 'pinia'
@@ -39,6 +39,11 @@ const usersStore = useUsersStore()
 const { users } = storeToRefs(usersStore)
 usersStore.getAll()
 
+import { useProfilesStore } from '@/stores/profiles.store.js'
+const profilesStore = useProfilesStore()
+const { profiles } = storeToRefs(profilesStore)
+profilesStore.getAll()
+
 import { useAlertStore } from '@/stores/alert.store.js'
 const alertStore = useAlertStore()
 const { alert } = storeToRefs(alertStore)
@@ -51,12 +56,12 @@ function userSettings(item) {
   router.push('user/edit/' + id)
 }
 
-function getCredentials(item, nobr = false) {
+function getCredentials(item) {
   let crd = null
   if (item) {
-    crd = 'Пользователь'
+    crd = ''
     if (item.isAdmin) {
-      crd += (nobr ? '' : '; ') + 'Администратор'
+      crd = 'Администратор'
     }
   }
   return crd
@@ -80,11 +85,30 @@ function filterUsers(value, query, item) {
   ) {
     return true
   }
-  const crd = getCredentials(i, true)
+  const profile = getProfile(i)
+  if (profile.toLocaleUpperCase().indexOf(q) !== -1) {
+    return true
+  }
+
+  const crd = getCredentials(i)
   if (crd.toLocaleUpperCase().indexOf(q) !== -1) {
     return true
   }
   return false
+}
+
+function getProfile(item) {
+  if (item.profileId == -1) {
+    return ''
+  }
+  let profile = computed(() => {
+    let profile = null
+    if (!profiles.value.loading) {
+      profile = profiles.value.find((o) => o.id === item.profileId)
+    }
+    return profile ? profile.name : 'загружается...'
+  })
+  return profile.value
 }
 
 async function deleteUser(item) {
@@ -118,6 +142,7 @@ async function deleteUser(item) {
 const headers = [
   { title: 'Пользователь', align: 'start', key: 'id' },
   { title: 'E-mail', align: 'start', key: 'email' },
+  { title: 'Профиль', align: 'start', key: 'profileId' },
   { title: 'Права', align: 'start', key: 'credentials', sortable: false },
   { title: '', align: 'center', key: 'actions1', sortable: false, width: '5%' },
   { title: '', align: 'center', key: 'actions2', sortable: false, width: '5%' }
@@ -157,6 +182,10 @@ const headers = [
       >
         <template v-slot:[`item.id`]="{ item }">
           {{ item['lastName'] }} {{ item['firstName'] }} {{ item['patronimic'] }}
+        </template>
+
+        <template v-slot:[`item.profileId`]="{ item }">
+          {{ getProfile(item) }}
         </template>
 
         <template v-slot:[`item.credentials`]="{ item }">
