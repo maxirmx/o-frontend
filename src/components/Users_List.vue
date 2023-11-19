@@ -144,6 +144,7 @@ const headers = [
   { title: 'E-mail', align: 'start', key: 'email' },
   { title: 'Профиль', align: 'start', key: 'profileId' },
   { title: 'Права', align: 'start', key: 'credentials', sortable: false },
+  { title: '', align: 'center', key: 'actions0', sortable: false, width: '5%' },
   { title: '', align: 'center', key: 'actions1', sortable: false, width: '5%' },
   { title: '', align: 'center', key: 'actions2', sortable: false, width: '5%' }
 ]
@@ -191,14 +192,10 @@ const headers = [
         <template v-slot:[`item.credentials`]="{ item }">
           <span v-html="getCredentials(item)"></span>
         </template>
+
         <template v-slot:[`item.actions1`]="{ item }">
           <button @click="userSettings(item)" class="anti-btn">
-            <font-awesome-icon
-              @click="userSettings(item)"
-              size="1x"
-              icon="fa-solid fa-pen"
-              class="anti-btn"
-            />
+            <font-awesome-icon size="1x" icon="fa-solid fa-pen" class="anti-btn" />
           </button>
         </template>
         <template v-slot:[`item.actions2`]="{ item }">

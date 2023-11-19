@@ -33,6 +33,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 import {
+  faDownload,
   faEye,
   faEyeSlash,
   faHand,
@@ -43,7 +44,7 @@ import {
   faUserPlus
 } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faEye, faEyeSlash, faHand, faPen, faPlay, faPlus, faTrashCan, faUserPlus)
+library.add(faDownload, faEye, faEyeSlash, faHand, faPen, faPlay, faPlus, faTrashCan, faUserPlus)
 
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'

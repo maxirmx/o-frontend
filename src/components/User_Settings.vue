@@ -35,6 +35,8 @@ import { useProfilesStore } from '@/stores/profiles.store.js'
 import { useAuthStore } from '@/stores/auth.store.js'
 import { useAlertStore } from '@/stores/alert.store.js'
 
+import { saveAs } from 'file-saver'
+
 const props = defineProps({
   register: {
     type: Boolean,
@@ -174,12 +176,27 @@ function onSubmit(values, { setErrors }) {
       })
   }
 }
+
+async function exportData(u) {
+  const filename = u.email + '.ovpn'
+  const blob = new Blob([u.config], {
+    type: 'text/plain;charset=utf-8'
+  })
+
+  saveAs(blob, filename)
+}
 </script>
 
 <template>
   <div class="settings form-2">
     <h1 class="orange">{{ getTitle() }}</h1>
     <hr class="hr" />
+    <div class="link-crt">
+      <a class="link" @click="exportData(user)">
+        <font-awesome-icon size="1x" icon="fa-solid fa-download" class="link" />
+        Загрузить конфигурацию
+      </a>
+    </div>
     <Form
       @submit="onSubmit"
       :initial-values="user"
