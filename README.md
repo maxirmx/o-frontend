@@ -1,3 +1,3 @@
 # o-frontend
 
-O!Service demo frontend
+TrustVPN demo frontend
